@@ -1,0 +1,35 @@
+:root {
+    --cabernet: #670038;
+    --cabernet-hover: #550030;
+}
+
+.btn-cabernet {
+    background-color: var(--cabernet);
+    border-color: var(--cabernet);
+    color: white;
+}
+
+.btn-cabernet:hover {
+    background-color: var(--cabernet-hover);
+    border-color: var(--cabernet-hover);
+    color: white;
+}
+
+.navbar-brand {
+    font-weight: bold;
+    color: var(--cabernet) !important;
+}
+
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1;
+}
+
+.footer {
+    margin-top: auto;
+}

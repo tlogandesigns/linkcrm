@@ -1,0 +1,50 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: linkcrm
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - linkcrm_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d linkcrm"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+    networks:
+      - dokploy
+
+  web:
+    build:
+      context: ../api
+      dockerfile: Dockerfile
+    env_file:
+      - ../api/.env
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO", "-", "http://localhost:8000/health"]
+      interval: 15s
+      timeout: 3s
+      retries: 5
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.linkcrm.rule=Host(\`app.example.com\`)"
+      - "traefik.http.routers.linkcrm.entrypoints=websecure"
+      - "traefik.http.routers.linkcrm.tls=true"
+      - "traefik.http.services.linkcrm.loadbalancer.server.port=8000"
+    networks:
+      - dokploy
+
+volumes:
+  linkcrm_pg:
+
+networks:
+  dokploy:
+    external: true

@@ -1,0 +1,53 @@
+{% extends "layout.html" %}
+
+{% block title %}Profile - LinkCrm{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Profile Settings</h2>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="post" action="/dashboard/profile">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    
+                    <div class="mb-3">
+                        <label for="handle" class="form-label">Handle</label>
+                        <input type="text" class="form-control" id="handle" name="handle" 
+                               value="{{ current_user.handle }}" required>
+                        <div class="form-text">Your public URL: /u/{{ current_user.handle }}</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="display_name" class="form-label">Display Name</label>
+                        <input type="text" class="form-control" id="display_name" name="display_name" 
+                               value="{{ current_user.display_name or '' }}">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="bio" class="form-label">Bio</label>
+                        <textarea class="form-control" id="bio" name="bio" rows="3">{{ current_user.bio or '' }}</textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="avatar_url" class="form-label">Avatar URL</label>
+                        <input type="url" class="form-control" id="avatar_url" name="avatar_url" 
+                               value="{{ current_user.avatar_url or '' }}">
+                    </div>
+                    
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="email_notifications" 
+                               name="email_notifications" {% if current_user.email_notifications %}checked{% endif %}>
+                        <label class="form-check-label" for="email_notifications">
+                            Email me when I receive new leads
+                        </label>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-cabernet">Save Changes</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends "layout.html" %}
+
+{% block title %}Login - LinkCrm{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <div class="card">
+            <div class="card-body">
+                <h3 class="card-title text-center mb-4">Sign In</h3>
+                
+                {% if error %}
+                <div class="alert alert-danger">{{ error }}</div>
+                {% endif %}
+                
+                <form id="loginForm">
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email Address</label>
+                        <input type="email" class="form-control" id="email" name="email" required>
+                    </div>
+                    <button type="submit" class="btn btn-cabernet w-100">Send Magic Link</button>
+                </form>
+                
+                <p class="text-center text-muted mt-3">
+                    We'll send you a secure link to sign in. No password required.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('email').value;
+    
+    try {
+        const response = await fetch('/auth/magic-link', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+        });
+        
+        if (response.ok) {
+            showToast('Magic link sent! Check your email.');
+            document.getElementById('loginForm').reset();
+        } else {
+            showToast('Error sending magic link. Please try again.', 'error');
+        }
+    } catch (error) {
+        showToast('Error sending magic link. Please try again.', 'error');
+    }
+});
+</script>
+{% endblock %}

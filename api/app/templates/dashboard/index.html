@@ -1,0 +1,76 @@
+{% extends "layout.html" %}
+
+{% block title %}Dashboard - LinkCrm{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Dashboard</h2>
+
+<div class="row mb-4">
+    <div class="col-md-4 mb-3">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Page Views</h5>
+                <p class="display-6">{{ page_views }}</p>
+                <p class="text-muted">Last 30 days</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Link Clicks</h5>
+                <p class="display-6">{{ link_clicks }}</p>
+                <p class="text-muted">Last 30 days</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Plan</h5>
+                <p class="display-6 text-capitalize">{{ current_user.plan }}</p>
+                <a href="#" class="btn btn-sm btn-cabernet">Upgrade</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Recent Leads</h5>
+        <a href="/dashboard/leads" class="btn btn-sm btn-outline-secondary">View All</a>
+    </div>
+    <div class="card-body">
+        {% if recent_leads %}
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Message</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for lead in recent_leads %}
+                    <tr>
+                        <td>{{ lead.name }}</td>
+                        <td>{{ lead.email }}</td>
+                        <td>{{ lead.message[:50] if lead.message else '' }}...</td>
+                        <td>{{ lead.created_at.strftime('%Y-%m-%d') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted">No leads yet. Share your page to start collecting leads!</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="mt-4">
+    <a href="/u/{{ current_user.handle }}" class="btn btn-cabernet" target="_blank">View My Public Page</a>
+</div>
+{% endblock %}
