@@ -21,7 +21,16 @@
                             <a class="nav-link" href="/dashboard">Dashboard</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="/u/{{ current_user.handle }}">My Page</a>
+                            <a class="nav-link" href="/dashboard/links">Links</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/dashboard/leads">Leads</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/dashboard/profile">Profile</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/u/{{ current_user.handle }}" target="_blank">My Page</a>
                         </li>
                         <li class="nav-item">
                             <form method="post" action="/auth/logout" style="display: inline;">

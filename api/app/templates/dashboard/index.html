@@ -118,7 +118,42 @@
     </div>
 </div>
 
-<div class="mt-4">
-    <a href="/u/{{ current_user.handle }}" class="btn btn-cabernet" target="_blank">View My Public Page</a>
+<div class="row mt-4">
+    <div class="col-md-3 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h6 class="card-title">Manage Links</h6>
+                <p class="text-muted small">Add and organize your links</p>
+                <a href="/dashboard/links" class="btn btn-sm btn-cabernet">Go to Links</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h6 class="card-title">View Leads</h6>
+                <p class="text-muted small">See who contacted you</p>
+                <a href="/dashboard/leads" class="btn btn-sm btn-cabernet">Go to Leads</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h6 class="card-title">Edit Profile</h6>
+                <p class="text-muted small">Update your bio and photo</p>
+                <a href="/dashboard/profile" class="btn btn-sm btn-cabernet">Go to Profile</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h6 class="card-title">Public Page</h6>
+                <p class="text-muted small">View your live page</p>
+                <a href="/u/{{ current_user.handle }}" class="btn btn-sm btn-outline-secondary" target="_blank">View Page</a>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
