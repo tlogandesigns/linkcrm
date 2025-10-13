@@ -1,6 +1,6 @@
 import hmac
 import hashlib
-from fastapi import APIRouter, Request, HTTPException
+from fastapi import APIRouter, Request, HTTPException, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.deps import get_db
 from app.config import settings
