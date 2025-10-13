@@ -1,5 +1,5 @@
 from uuid import UUID
-from fastapi import APIRouter, Depends, Request, Form
+from fastapi import APIRouter, Depends, Request, Form, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -12,6 +12,17 @@ from app.security import generate_csrf_token
 router = APIRouter(prefix="/dashboard/links", tags=["links"])
 templates = Jinja2Templates(directory="app/templates")
 
+# Plan limits
+PLAN_LIMITS = {
+    "free": 3,
+    "starter": 10,
+    "pro": None  # Unlimited
+}
+
+def get_link_limit(plan: str) -> int | None:
+    """Get link limit for a plan. None means unlimited."""
+    return PLAN_LIMITS.get(plan, 3)  # Default to free plan limit
+
 
 @router.get("", response_class=HTMLResponse)
 async def links_page(
@@ -21,11 +32,15 @@ async def links_page(
 ):
     link_page = await links.get_link_page(db, current_user.id)
     all_links = await links.get_links(db, link_page.id)
-    
+    link_limit = get_link_limit(current_user.plan)
+    can_add_more = link_limit is None or len(all_links) < link_limit
+
     return templates.TemplateResponse("dashboard/links.html", {
         "request": request,
         "current_user": current_user,
         "links": all_links,
+        "link_limit": link_limit,
+        "can_add_more": can_add_more,
         "csrf_token": generate_csrf_token()
     })
 
@@ -38,10 +53,20 @@ async def create_link(
     current_user: Profile = Depends(get_current_user)
 ):
     link_page = await links.get_link_page(db, current_user.id)
+    all_links = await links.get_links(db, link_page.id)
+
+    # Check plan limit
+    link_limit = get_link_limit(current_user.plan)
+    if link_limit is not None and len(all_links) >= link_limit:
+        return RedirectResponse(
+            url=f"/dashboard/links?error=limit_reached&plan={current_user.plan}&limit={link_limit}",
+            status_code=303
+        )
+
     link_data = LinkCreate(title=title, url=url)
     await links.create_link(db, link_page.id, link_data)
-    
-    return RedirectResponse(url="/dashboard/links", status_code=303)
+
+    return RedirectResponse(url="/dashboard/links?success=created", status_code=303)
 
 
 @router.post("/reorder", dependencies=[Depends(csrf_protect)])
