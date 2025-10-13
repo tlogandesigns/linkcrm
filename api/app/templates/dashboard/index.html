@@ -3,7 +3,45 @@
 {% block title %}Dashboard - LinkCrm{% endblock %}
 
 {% block content %}
-<h2 class="mb-4">Dashboard</h2>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">Dashboard</h2>
+    <div class="dropdown">
+        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+            Quick Actions
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end">
+            <li><h6 class="dropdown-header">Testing: Switch Plan</h6></li>
+            <li>
+                <form method="post" action="/dashboard/switch-plan" class="px-3">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    <button type="submit" name="plan" value="free" class="btn btn-sm btn-outline-secondary w-100 mb-2">
+                        Switch to Free
+                    </button>
+                    <button type="submit" name="plan" value="starter" class="btn btn-sm btn-outline-primary w-100 mb-2">
+                        Switch to Starter
+                    </button>
+                    <button type="submit" name="plan" value="pro" class="btn btn-sm btn-outline-success w-100">
+                        Switch to Pro
+                    </button>
+                </form>
+            </li>
+        </ul>
+    </div>
+</div>
+
+{% if request.query_params.get('success') == 'plan_changed' %}
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+    Plan changed successfully!
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+{% endif %}
+
+{% if request.query_params.get('error') %}
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+    Error: {{ request.query_params.get('error') }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+{% endif %}
 
 <div class="row mb-4">
     <div class="col-md-4 mb-3">
