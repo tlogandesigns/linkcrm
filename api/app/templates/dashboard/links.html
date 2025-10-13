@@ -41,7 +41,7 @@
             <table class="table table-hover">
                 <thead>
                     <tr>
-                        <th style="width: 50px"></th>
+                        <th style="width: 50px"><span class="visually-hidden">Drag to reorder</span></th>
                         <th>Title</th>
                         <th>URL</th>
                         <th>Clicks</th>
@@ -101,7 +101,7 @@
                 <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                 <div class="modal-header">
                     <h5 class="modal-title">Add New Link</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
@@ -130,7 +130,7 @@
                 <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                 <div class="modal-header">
                     <h5 class="modal-title">Edit Link</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
