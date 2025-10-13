@@ -15,11 +15,10 @@ RUN pip install --no-cache-dir --upgrade pip && \
 
 COPY . .
 
-RUN alembic upgrade head || true
-
 EXPOSE 8000
 
 HEALTHCHECK --interval=15s --timeout=3s --retries=5 \
     CMD wget -qO- http://localhost:8000/health || exit 1
 
-CMD ["gunicorn", "app.main:app", "--workers", "2", "--worker-class", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8000", "--timeout", "120"]
+# Run migrations and start app
+CMD alembic upgrade head && gunicorn app.main:app --workers 2 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000 --timeout 120
