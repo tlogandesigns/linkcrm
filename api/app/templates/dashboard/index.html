@@ -29,7 +29,17 @@
             <div class="card-body">
                 <h5 class="card-title">Plan</h5>
                 <p class="display-6 text-capitalize">{{ current_user.plan }}</p>
-                <a href="#" class="btn btn-sm btn-cabernet">Upgrade</a>
+                {% if upgrade_url %}
+                <a href="{{ upgrade_url }}" class="btn btn-sm btn-cabernet" target="_blank">
+                    {% if current_user.plan == 'free' %}
+                    Upgrade to Starter
+                    {% elif current_user.plan == 'starter' %}
+                    Upgrade to Pro
+                    {% endif %}
+                </a>
+                {% else %}
+                <span class="badge bg-success">You're on the best plan!</span>
+                {% endif %}
             </div>
         </div>
     </div>
