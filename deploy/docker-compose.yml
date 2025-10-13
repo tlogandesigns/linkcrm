@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   db:
     image: postgres:16
@@ -22,8 +20,24 @@ services:
     build:
       context: ../api
       dockerfile: Dockerfile
-    env_file:
-      - ../api/.env
+    environment:
+      ENV: ${ENV:-production}
+      APP_HOST: ${APP_HOST:-0.0.0.0}
+      APP_PORT: ${APP_PORT:-8000}
+      SERVER_URL: ${SERVER_URL}
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://postgres:postgres@db:5432/linkcrm}
+      SQL_ECHO: ${SQL_ECHO:-false}
+      SECRET_KEY: ${SECRET_KEY}
+      SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME:-session}
+      SESSION_EXPIRES_DAYS: ${SESSION_EXPIRES_DAYS:-30}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASS: ${SMTP_PASS}
+      SMTP_FROM: ${SMTP_FROM}
+      LEMONSQUEEZY_WEBHOOK_SECRET: ${LEMONSQUEEZY_WEBHOOK_SECRET}
+      LEMONSQUEEZY_CHECKOUT_STARTER: ${LEMONSQUEEZY_CHECKOUT_STARTER}
+      LEMONSQUEEZY_CHECKOUT_PRO: ${LEMONSQUEEZY_CHECKOUT_PRO}
     depends_on:
       db:
         condition: service_healthy
