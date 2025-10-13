@@ -27,6 +27,24 @@ def verify_email_magic_token(token: str) -> Optional[str]:
         return None
 
 
+def create_password_reset_token(email: str, expires_minutes: int = 60) -> str:
+    expire = datetime.utcnow() + timedelta(minutes=expires_minutes)
+    to_encode = {"sub": email, "exp": expire, "type": "password_reset"}
+    return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=ALGORITHM)
+
+
+def verify_password_reset_token(token: str) -> Optional[str]:
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        token_type: str = payload.get("type")
+        if email is None or token_type != "password_reset":
+            return None
+        return email
+    except JWTError:
+        return None
+
+
 def create_session_token(profile_id: str, expires_days: int = 30) -> str:
     expire = datetime.utcnow() + timedelta(days=expires_days)
     to_encode = {"sub": str(profile_id), "exp": expire, "type": "session"}
