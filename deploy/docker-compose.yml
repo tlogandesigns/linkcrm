@@ -60,5 +60,6 @@ volumes:
   linkcrm_pg:
 
 networks:
-  dokploy:
+  internal:
     external: true
+    name: dokploy
