@@ -8,14 +8,14 @@
 {% if request.query_params.get('success') %}
 <div class="alert alert-success alert-dismissible fade show" role="alert">
     Profile updated successfully!
-    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
 </div>
 {% endif %}
 
 {% if request.query_params.get('error') == 'handle_taken' %}
 <div class="alert alert-danger alert-dismissible fade show" role="alert">
     That handle is already taken. Please choose another.
-    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
 </div>
 {% endif %}
 
