@@ -14,7 +14,7 @@ services:
       retries: 10
     restart: unless-stopped
     networks:
-      - dokploy
+      - internal
 
   web:
     build:
@@ -54,7 +54,7 @@ services:
       - "traefik.http.routers.linkcrm.tls=true"
       - "traefik.http.services.linkcrm.loadbalancer.server.port=8000"
     networks:
-      - dokploy
+      - internal
 
 volumes:
   linkcrm_pg:
