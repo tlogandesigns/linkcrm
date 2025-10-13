@@ -24,10 +24,23 @@ async def create_profile(db: AsyncSession, email: str, handle: str) -> Profile:
     profile = Profile(email=email, handle=handle, display_name=handle)
     db.add(profile)
     await db.flush()
-    
+
     link_page = LinkPage(owner_id=profile.id)
     db.add(link_page)
-    
+
+    await db.commit()
+    await db.refresh(profile)
+    return profile
+
+
+async def create_profile_with_password(db: AsyncSession, email: str, handle: str, password_hash: str) -> Profile:
+    profile = Profile(email=email, handle=handle, display_name=handle, password_hash=password_hash)
+    db.add(profile)
+    await db.flush()
+
+    link_page = LinkPage(owner_id=profile.id)
+    db.add(link_page)
+
     await db.commit()
     await db.refresh(profile)
     return profile

@@ -1,0 +1,45 @@
+{% extends "layout.html" %}
+
+{% block title %}Sign Up - LinkCrm{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <div class="card">
+            <div class="card-body">
+                <h3 class="card-title text-center mb-4">Create Account</h3>
+
+                {% if request.query_params.get('error') == 'email_exists' %}
+                <div class="alert alert-danger">Email already exists. Please <a href="/auth/login">sign in</a> instead.</div>
+                {% elif request.query_params.get('error') == 'handle_exists' %}
+                <div class="alert alert-danger">Handle already taken. Please choose another.</div>
+                {% elif request.query_params.get('error') == 'password_too_short' %}
+                <div class="alert alert-danger">Password must be at least 8 characters long.</div>
+                {% endif %}
+
+                <form method="post" action="/auth/signup">
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email Address</label>
+                        <input type="email" class="form-control" id="email" name="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="handle" class="form-label">Handle</label>
+                        <input type="text" class="form-control" id="handle" name="handle" pattern="[a-zA-Z0-9_-]+" required>
+                        <div class="form-text">Your unique username (letters, numbers, dashes, and underscores only)</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="password" name="password" minlength="8" required>
+                        <div class="form-text">At least 8 characters</div>
+                    </div>
+                    <button type="submit" class="btn btn-cabernet w-100">Create Account</button>
+                </form>
+
+                <p class="text-center mt-3">
+                    Already have an account? <a href="/auth/login">Sign in</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

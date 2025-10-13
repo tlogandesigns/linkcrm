@@ -8,9 +8,10 @@ from app.database import Base
 
 class Profile(Base):
     __tablename__ = "profiles"
-    
+
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     email = Column(String(255), unique=True, nullable=False, index=True)
+    password_hash = Column(String(255), nullable=False)
     handle = Column(String(100), unique=True, nullable=False, index=True)
     display_name = Column(String(200))
     bio = Column(Text)

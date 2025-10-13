@@ -2,9 +2,11 @@ from datetime import datetime, timedelta
 from typing import Optional
 from jose import jwt, JWTError
 from fastapi import Response
+from passlib.context import CryptContext
 from app.config import settings
 
 ALGORITHM = "HS256"
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 def create_email_magic_token(email: str, expires_minutes: int = 15) -> str:
@@ -76,3 +78,13 @@ def verify_csrf_token(token: str) -> bool:
         return token_type == "csrf"
     except JWTError:
         return False
+
+
+def hash_password(password: str) -> str:
+    """Hash a password using bcrypt."""
+    return pwd_context.hash(password)
+
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """Verify a password against its hash."""
+    return pwd_context.verify(plain_password, hashed_password)
