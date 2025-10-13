@@ -5,49 +5,142 @@
 {% block content %}
 <h2 class="mb-4">Profile Settings</h2>
 
+{% if request.query_params.get('success') %}
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+    Profile updated successfully!
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+
+{% if request.query_params.get('error') == 'handle_taken' %}
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+    That handle is already taken. Please choose another.
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+
 <div class="row">
     <div class="col-md-8">
         <div class="card">
             <div class="card-body">
                 <form method="post" action="/dashboard/profile">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-                    
-                    <div class="mb-3">
-                        <label for="handle" class="form-label">Handle</label>
-                        <input type="text" class="form-control" id="handle" name="handle" 
-                               value="{{ current_user.handle }}" required>
-                        <div class="form-text">Your public URL: /u/{{ current_user.handle }}</div>
+
+                    <!-- Avatar Section -->
+                    <div class="mb-4">
+                        <label class="form-label">Profile Photo</label>
+                        <div class="d-flex align-items-start gap-3">
+                            <div>
+                                <img id="avatar-preview"
+                                     src="{{ current_user.avatar_url or 'https://via.placeholder.com/100x100/722f37/ffffff?text=' + (current_user.display_name or current_user.handle)[0]|upper }}"
+                                     alt="Avatar"
+                                     class="rounded-circle"
+                                     style="width: 100px; height: 100px; object-fit: cover; border: 3px solid #722f37;">
+                            </div>
+                            <div class="flex-grow-1">
+                                <input type="url" class="form-control" id="avatar_url" name="avatar_url"
+                                       value="{{ current_user.avatar_url or '' }}"
+                                       placeholder="https://example.com/your-photo.jpg">
+                                <div class="form-text">
+                                    Enter a URL to your photo. You can upload to <a href="https://imgur.com" target="_blank">Imgur</a> or use a URL from your website.
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    
+
+                    <hr class="my-4">
+
                     <div class="mb-3">
                         <label for="display_name" class="form-label">Display Name</label>
-                        <input type="text" class="form-control" id="display_name" name="display_name" 
-                               value="{{ current_user.display_name or '' }}">
+                        <input type="text" class="form-control" id="display_name" name="display_name"
+                               value="{{ current_user.display_name or '' }}"
+                               placeholder="Your full name">
+                        <div class="form-text">This is how your name appears on your public page</div>
                     </div>
-                    
+
+                    <div class="mb-3">
+                        <label for="handle" class="form-label">Handle</label>
+                        <div class="input-group">
+                            <span class="input-group-text">linkcrm.app/u/</span>
+                            <input type="text" class="form-control" id="handle" name="handle"
+                                   value="{{ current_user.handle }}" required
+                                   pattern="[a-z0-9_-]+"
+                                   title="Only lowercase letters, numbers, underscores, and hyphens">
+                        </div>
+                        <div class="form-text">Your unique URL identifier</div>
+                    </div>
+
                     <div class="mb-3">
                         <label for="bio" class="form-label">Bio</label>
-                        <textarea class="form-control" id="bio" name="bio" rows="3">{{ current_user.bio or '' }}</textarea>
+                        <textarea class="form-control" id="bio" name="bio" rows="3"
+                                  placeholder="Tell visitors about yourself..."
+                                  maxlength="500">{{ current_user.bio or '' }}</textarea>
+                        <div class="form-text"><span id="bio-count">{{ (current_user.bio or '')|length }}</span>/500 characters</div>
                     </div>
-                    
-                    <div class="mb-3">
-                        <label for="avatar_url" class="form-label">Avatar URL</label>
-                        <input type="url" class="form-control" id="avatar_url" name="avatar_url" 
-                               value="{{ current_user.avatar_url or '' }}">
-                    </div>
-                    
+
+                    <hr class="my-4">
+
                     <div class="mb-3 form-check">
-                        <input type="checkbox" class="form-check-input" id="email_notifications" 
+                        <input type="checkbox" class="form-check-input" id="email_notifications"
                                name="email_notifications" {% if current_user.email_notifications %}checked{% endif %}>
                         <label class="form-check-label" for="email_notifications">
-                            Email me when I receive new leads
+                            <strong>Email me when I receive new leads</strong>
                         </label>
                     </div>
-                    
+
                     <button type="submit" class="btn btn-cabernet">Save Changes</button>
+                    <a href="/dashboard" class="btn btn-outline-secondary ms-2">Cancel</a>
                 </form>
             </div>
         </div>
     </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="card-title">Preview</h6>
+                <p class="text-muted small">This is how your page will look to visitors</p>
+                <div class="text-center py-3">
+                    <img id="preview-avatar"
+                         src="{{ current_user.avatar_url or 'https://via.placeholder.com/80x80/722f37/ffffff?text=' + (current_user.display_name or current_user.handle)[0]|upper }}"
+                         alt="Preview"
+                         class="rounded-circle mb-2"
+                         style="width: 80px; height: 80px; object-fit: cover;">
+                    <h5 class="mb-1" id="preview-name">{{ current_user.display_name or current_user.handle }}</h5>
+                    <p class="text-muted small mb-0" id="preview-bio">{{ current_user.bio or 'Your bio will appear here' }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<script>
+// Avatar URL preview
+document.getElementById('avatar_url').addEventListener('input', function(e) {
+    const url = e.target.value;
+    if (url) {
+        document.getElementById('avatar-preview').src = url;
+        document.getElementById('preview-avatar').src = url;
+    }
+});
+
+// Display name preview
+document.getElementById('display_name').addEventListener('input', function(e) {
+    const name = e.target.value || document.getElementById('handle').value;
+    document.getElementById('preview-name').textContent = name;
+});
+
+// Bio preview and character count
+document.getElementById('bio').addEventListener('input', function(e) {
+    document.getElementById('preview-bio').textContent = e.target.value || 'Your bio will appear here';
+    document.getElementById('bio-count').textContent = e.target.value.length;
+});
+
+// Handle preview
+document.getElementById('handle').addEventListener('input', function(e) {
+    if (!document.getElementById('display_name').value) {
+        document.getElementById('preview-name').textContent = e.target.value;
+    }
+});
+</script>
 {% endblock %}
