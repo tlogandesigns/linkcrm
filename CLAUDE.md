@@ -84,7 +84,7 @@ PostgreSQL/SQLite Database
 ### Database Schema
 
 **Core Models** (all in `api/app/models.py`):
-- `Profile`: User accounts with email, handle, bio, avatar, plan
+- `Profile`: User accounts with email, handle, password_hash, bio, avatar, plan
 - `LinkPage`: Link page configuration (theme, owner relationship)
 - `Link`: Individual links with title, URL, position (sortable), clicks, is_active flag
 - `Lead`: Contact form submissions with name, email, message
@@ -100,11 +100,26 @@ PostgreSQL/SQLite Database
 
 ### Authentication System
 
-**Passwordless Magic Link Flow**:
-1. User enters email → `create_email_magic_token()` generates 15-min JWT
-2. Email sent with magic link → `/auth/callback?token=...`
-3. Token verified → `create_session_token()` generates 30-day session JWT
+**Password-Based Authentication**:
+1. **Signup**: User provides email, handle, password → `hash_password()` hashes with bcrypt → `create_profile_with_password()` creates account
+2. **Login**: User provides email/password → `verify_password()` checks hash → `create_session_token()` generates 30-day JWT
+3. **Password Reset**:
+   - User requests reset → `create_password_reset_token()` generates 60-min JWT
+   - Email sent with reset link → `/auth/reset-password?token=...`
+   - User sets new password → hash updated, session created
 4. Session stored in HttpOnly cookie via `set_session_cookie()`
+
+**Password Security** (`api/app/security.py`):
+- Uses bcrypt via passlib with CryptContext
+- Passwords automatically truncated to 72 bytes (bcrypt limit) before hashing/verification
+- `hash_password(password)`: Hashes password with bcrypt
+- `verify_password(plain, hash)`: Verifies password against stored hash
+- Minimum 8 characters enforced at signup and password reset
+
+**Token Types**:
+- `session`: 30-day JWT for authenticated sessions
+- `password_reset`: 60-min JWT for password reset flow
+- `csrf`: 24-hour JWT for CSRF protection
 
 **Dependencies** (`api/app/deps.py`):
 - `get_current_user`: Extracts user from session cookie, raises 401 if missing/invalid
@@ -115,6 +130,7 @@ PostgreSQL/SQLite Database
 - JWT tokens signed with SECRET_KEY
 - Session cookies: HttpOnly, Secure (production), SameSite=lax
 - CSRF protection via `generate_csrf_token()` / `verify_csrf_token()`
+- Bcrypt password hashing with automatic 72-byte truncation
 - Rate limiting in `api/app/rate_limit.py`
 - Webhook HMAC verification for payment provider
 
@@ -136,13 +152,13 @@ async def create_foo(db: AsyncSession, data: dict) -> Foo:
 ```
 
 **Key CRUD Modules**:
-- `profiles.py`: get_by_id, get_by_email, get_by_handle, create (also creates LinkPage), update
+- `profiles.py`: get_by_id, get_by_email, get_by_handle, create_profile_with_password (also creates LinkPage), update
 - `links.py`: get_link_page, get_links (ordered by position), get_link, create (auto-increments position), update, delete, reorder_links (bulk position update), increment_link_clicks
 - `leads.py`: get_leads_for_owner (with date filtering), create, count
 - `events.py`: track_event (generic analytics), get_stats
 - `subs.py`: get_by_owner, create, update
 
-**Important**: `crud.profiles.create_profile()` at line 23 automatically creates an associated `LinkPage` using `db.flush()` before final commit, ensuring the relationship is established atomically.
+**Important**: `crud.profiles.create_profile_with_password()` automatically creates an associated `LinkPage` using `db.flush()` before final commit, ensuring the relationship is established atomically.
 
 ### Implementation Status
 
@@ -165,7 +181,7 @@ async def create_foo(db: AsyncSession, data: dict) -> Foo:
 
 **All Routers Implemented** (`api/app/routers/`):
 - ✅ `public.py`: Landing page, bio page, lead submission
-- ✅ `auth.py`: Magic link login flow
+- ✅ `auth.py`: Password-based authentication (signup, login, password reset)
 - ✅ `dashboard.py`: Dashboard home
 - ✅ `profile.py`: Profile settings
 - ✅ `links.py`: Link CRUD and reordering
@@ -177,6 +193,9 @@ async def create_foo(db: AsyncSession, data: dict) -> Foo:
 - ✅ `layout.html`: Base template with Bootstrap 5
 - ✅ `landing.html`: Marketing homepage
 - ✅ `auth_login.html`: Login form
+- ✅ `auth_signup.html`: Signup form
+- ✅ `auth_forgot_password.html`: Password reset request form
+- ✅ `auth_reset_password.html`: New password form
 - ✅ `public/page.html`: Bio page with links and lead form
 - ✅ `public/thankyou.html`: Lead submission confirmation
 - ✅ `dashboard/index.html`: Dashboard with stats
@@ -231,7 +250,7 @@ rate_limiter.check_rate_limit(f"webhook:{client_ip}", max_requests=30, window_se
 
 **Environment Variables** (see `api/.env.example`):
 - `ENV`: "production" or "development"
-- `SERVER_URL`: Full URL for magic link emails
+- `SERVER_URL`: Full URL for password reset emails
 - `DATABASE_URL`: PostgreSQL URL or `sqlite+aiosqlite:///./dev.db` for local
 - `SECRET_KEY`: 32+ character random string for JWT signing
 - `SMTP_*`: Email configuration (SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM)
@@ -249,7 +268,7 @@ rate_limiter.check_rate_limit(f"webhook:{client_ip}", max_requests=30, window_se
 ### Email System
 
 **Functions** (`api/app/emails.py`):
-- `send_magic_link(email: str, token: str)`: Sends login link
+- `send_password_reset(email: str, reset_url: str)`: Sends password reset link
 - `send_lead_notification(owner_email: str, lead: Lead)`: Alerts owner of new lead
 - Uses aiosmtplib for async SMTP
 
@@ -287,8 +306,13 @@ rate_limiter.check_rate_limit(f"webhook:{client_ip}", max_requests=30, window_se
 
 **Authentication**:
 - `GET /auth/login` - Login form
-- `POST /auth/magic-link` - Request magic link email
-- `GET /auth/callback?token=...` - Verify token, set session
+- `POST /auth/login` - Authenticate with email/password
+- `GET /auth/signup` - Signup form
+- `POST /auth/signup` - Create new account
+- `GET /auth/forgot-password` - Password reset request form
+- `POST /auth/forgot-password` - Send password reset email
+- `GET /auth/reset-password?token=...` - Password reset form
+- `POST /auth/reset-password` - Set new password
 - `POST /auth/logout` - Clear session cookie
 
 **Dashboard** (all require authentication):
@@ -337,6 +361,12 @@ rate_limiter.check_rate_limit(f"webhook:{client_ip}", max_requests=30, window_se
 - Raises `HTTPException(429)` if exceeded
 - Get IP: `get_client_ip(request)` handles X-Forwarded-For for proxies
 
-**Profile Creation**: Always use `crud.profiles.create_profile()` instead of direct model creation - it automatically creates the associated LinkPage
+**Profile Creation**: Always use `crud.profiles.create_profile_with_password()` instead of direct model creation - it automatically creates the associated LinkPage
+
+**Password Handling**:
+- Always use `hash_password()` before storing passwords in database
+- Use `verify_password(plain, hash)` to check passwords during login
+- Bcrypt automatically truncates passwords to 72 bytes to prevent errors
+- Enforce minimum 8 characters at application level in signup and reset forms
 
 **Database Session**: Use `async with AsyncSessionLocal() as session:` or the `get_db()` dependency. Sessions have `expire_on_commit=False` (see `database.py:14`)
