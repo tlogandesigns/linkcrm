@@ -1,6 +1,7 @@
 from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update
+from sqlalchemy.orm import selectinload
 from app.models import Link, LinkPage
 from app.schemas import LinkCreate, LinkUpdate
 
@@ -22,7 +23,11 @@ async def get_links(db: AsyncSession, page_id: UUID) -> list[Link]:
 
 
 async def get_link(db: AsyncSession, link_id: UUID) -> Link:
-    result = await db.execute(select(Link).where(Link.id == link_id))
+    result = await db.execute(
+        select(Link)
+        .where(Link.id == link_id)
+        .options(selectinload(Link.page))
+    )
     return result.scalar_one_or_none()
 
 
