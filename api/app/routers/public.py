@@ -68,14 +68,18 @@ async def submit_lead(
     )
     
     lead = await leads.create_lead(db, profile.id, lead_data)
-    
+
     if profile.email_notifications:
-        await send_lead_alert(profile.email, {
-            "name": lead.name,
-            "email": lead.email,
-            "message": lead.message
-        })
-    
+        try:
+            await send_lead_alert(profile.email, {
+                "name": lead.name,
+                "email": lead.email,
+                "message": lead.message
+            })
+        except Exception as e:
+            # Log the error but don't fail the lead submission
+            print(f"Failed to send lead notification email: {e}")
+
     return templates.TemplateResponse("public/thankyou.html", {
         "request": request,
         "handle": handle
